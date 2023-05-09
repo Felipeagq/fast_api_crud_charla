@@ -49,7 +49,7 @@ Base = declarative_base()
 ````python
 # app/models.py
 from sqlalchemy import Column, Integer, String
-from config import Base
+from app.config import Base
 
 class Book(Base):
     __tablename__ = "book"
@@ -136,13 +136,14 @@ def update_book(db:Session, book_id:int,
 
 ## Creamos las rutas de nuestra API
 ````python
+# app/routes.py
 from fastapi import APIRouter, HTTPException, Path
 from fastapi import Depends
 from app.config import SessionLocal
 from sqlalchemy.orm import Session
-from app.schemas import BookSchema, Request, Response, RequestBook
+from app.schemas import BookSchema, Response, RequestBook
 
-import crud
+from app import crud
 
 router = APIRouter()
 
