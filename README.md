@@ -32,7 +32,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-DATABASE_URL = "sqlite://database.db"
+DATABASE_URL = "sqlite://database.db" # postgresql
 
 engine = create_engine(DATABASE_URL)
 
@@ -87,10 +87,10 @@ class RequestBook(BaseModel):
     parameter: BookSchema = Field(...)
 
 
-class Response(GenericModel,Generic[T]):
+class Response(BaseModel):
     code: str
     status: str
-    msg: str
+    message: str
     result: Optional[T]
 ````
 
@@ -181,3 +181,5 @@ async def delete_book(request: RequestBook,  db: Session = Depends(get_db)):
 ````
 incluimos las rutas en nuestro archivo raiz, despues del ````app=FastAPI()```` 
 ````python
+app.include_router(router=router_crud,tags=["CRUD"],prefix="/books")
+````
