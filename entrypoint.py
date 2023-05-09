@@ -7,7 +7,11 @@ from app.routes import router as router_crud
 
 model.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(
+    title="Book Details",
+    description="You can perform CRUD operation by using this API",
+    version="1.0.0"
+)
 
 @app.get("/")
 def hello_world_check():
