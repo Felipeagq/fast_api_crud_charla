@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from app.models import Book
-from app.schemas import BookSchema
+from app.models.models import Book
+from app.schemas.schemas import BookSchema
 
 def get_book(db:Session, skip:int=0, limit:int=100):
     print(db.query(Book).offset(skip).limit(limit).all())

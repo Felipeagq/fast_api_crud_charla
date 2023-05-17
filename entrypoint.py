@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 import uvicorn
 
-import app.models as model
-from app.config import engine
-from app.routes import router as router_crud
+import app.models.models as model
+from app.db.config import engine
+from app.routes.routes import router as router_crud
 
 model.Base.metadata.create_all(bind=engine)
 
