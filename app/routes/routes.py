@@ -5,16 +5,9 @@ from sqlalchemy.orm import Session
 from app.schemas.schemas import BookSchema, Response, RequestBook
 
 from app.db import crud
+from app.db.config import get_db
 
 router = APIRouter()
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.post("/create")

@@ -3,3 +3,7 @@ uvicorn
 sqlalchemy
 psycopg2
 fastapi-utils
+
+python-jose
+passlib
+bcrypt
