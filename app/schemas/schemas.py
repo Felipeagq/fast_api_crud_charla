@@ -4,17 +4,25 @@ from pydantic.generics import GenericModel
 
 T = TypeVar("T")
 
-class BookSchema(BaseModel):
+class UserSchema(BaseModel):
     id: Optional[int] = None
-    title: Optional[str] = None
-    description: Optional[str] = None
+    username: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
     
     class Config:
         orm_mode = True
+        schema_extra = {
+            "example": {
+                'username': 'Andres',
+                'email': "micorreo@correo.com",
+                'password': 'password123456',
+            }
+        }
 
 
-class RequestBook(BaseModel):
-    parameter: BookSchema = Field(...)
+class RequestUser(BaseModel):
+    parameter: UserSchema = Field(...)
 
 
 class Response(BaseModel):

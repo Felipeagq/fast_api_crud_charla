@@ -19,7 +19,7 @@ def hello_world_check():
         "msg":"Hola Mundo"
     }
 
-app.include_router(router=router_crud,tags=["CRUD"],prefix="/books")
+app.include_router(router=router_crud,tags=["User CRUD"],prefix="/user")
 
 
 if __name__ == "__main__":
