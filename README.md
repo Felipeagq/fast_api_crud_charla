@@ -85,7 +85,7 @@ Luego de configurar la base de datos, procederemos a crear nuestro modelos para 
 ````python
 # app/models.py
 from sqlalchemy import Column, Integer, String
-from app.config import Base
+from app.db.config import Base
 
 # clase 
 class Book(Base):
@@ -155,8 +155,8 @@ Nuestro CRUD y nuestra rutas estarán en archivos diferentes para cumplir con lo
 
 ````python
 from sqlalchemy.orm import Session # La sesión de la DB
-from app.models import Book # El modelo ORM de nuestra DB
-from app.schemas import BookSchema # el esquema del JSON
+from app.models.models import Book # El modelo ORM de nuestra DB
+from app.schemas.schemas import BookSchema # el esquema del JSON
 
 # creamos la función para obtener todos los libros
 def get_book(db:Session, skip:int=0, limit:int=100):
@@ -273,5 +273,32 @@ async def delete_book(request: BookSchema,  db: Session = Depends(get_db)):
 ````
 incluimos las rutas en nuestro archivo raiz, despues del ````app=FastAPI()```` 
 ````python
+from fastapi import FastAPI
+import uvicorn
+
+import app.models.models as model
+from app.db.config import engine
+from app.routes.routes import router as router_crud
+
+model.Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="Book Details",
+    description="You can perform CRUD operation by using this API",
+    version="1.0.0"
+)
+
+@app.get("/")
+def hello_world_check():
+    return {
+        "msg":"Hola Mundo"
+    }
+
 app.include_router(router=router_crud,tags=["CRUD"],prefix="/books")
+
+
+if __name__ == "__main__":
+    uvicorn.run("entrypoint:app",
+                host="localhost",
+                reload=True)
 ````
