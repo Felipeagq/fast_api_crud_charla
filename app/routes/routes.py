@@ -1,20 +1,12 @@
 from fastapi import APIRouter, HTTPException, Path
 from fastapi import Depends
-from app.db.config import SessionLocal
+from app.db.config import SessionLocal,get_db
 from sqlalchemy.orm import Session
 from app.schemas.schemas import BookSchema, Response, RequestBook
 
 from app.db import crud
 
 router = APIRouter()
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.post("/create")
@@ -33,12 +25,26 @@ async def get_books(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
 
 @router.patch("/update")
 async def update_book(request: RequestBook, db: Session = Depends(get_db)):
-    _book = crud.update_book(db, book_id=request.parameter.id,
-                            title=request.parameter.title, description=request.parameter.description)
-    return Response(status="Ok", code="200", message="Success update data", result=_book)
+    try:
+        _book = crud.update_book(db, book_id=request.parameter.id,
+                                title=request.parameter.title, description=request.parameter.description)
+        return Response(status="Ok", code="200", message="Success update data", result=_book)
+    except Exception as e:
+        return Response(
+            status="bad",
+            code="304",
+            message="the updated gone wrong"
+        )
 
 
 @router.delete("/delete")
 async def delete_book(request: RequestBook,  db: Session = Depends(get_db)):
-    crud.remove_book(db, book_id=request.parameter.id)
-    return Response(status="Ok", code="200", message="Success delete data").dict(exclude_none=True)
+    try:
+        crud.remove_book(db, book_id=request.parameter.id)
+        return Response(status="Ok", code="200", message="Success delete data").dict(exclude_none=True)
+    except Exception as e:
+        return Response(
+            status="bad",
+            code="404",
+            message="the deleted gone wrong"
+        )
