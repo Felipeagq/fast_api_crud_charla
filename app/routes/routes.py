@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Path
 from fastapi import Depends
 from app.db.config import SessionLocal,get_db
 from sqlalchemy.orm import Session
-from app.schemas.schemas import BookSchema, Response, RequestBook
+from app.schemas.schemas import BookSchema, Response, BookSchema
 
 from app.db import crud
 
@@ -10,11 +10,12 @@ router = APIRouter()
 
 
 @router.post("/create")
-async def create_book_service(request: RequestBook, db: Session = Depends(get_db)):
-    crud.create_book(db, book=request.parameter)
+async def create_book_service(request: BookSchema, db: Session = Depends(get_db)):
+    crud.create_book(db, book=request)
+    print(request)
     return Response(status="Ok",
                     code="200",
-                    message="Book created successfully").dict(exclude_none=True)
+                    message="Book created successfully",result=request).dict(exclude_none=True)
 
 
 @router.get("/")
@@ -24,10 +25,10 @@ async def get_books(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
 
 
 @router.patch("/update")
-async def update_book(request: RequestBook, db: Session = Depends(get_db)):
+async def update_book(request: BookSchema, db: Session = Depends(get_db)):
     try:
-        _book = crud.update_book(db, book_id=request.parameter.id,
-                                title=request.parameter.title, description=request.parameter.description)
+        _book = crud.update_book(db, book_id=request.id,
+                                title=request.title, description=request.description)
         return Response(status="Ok", code="200", message="Success update data", result=_book)
     except Exception as e:
         return Response(
@@ -38,9 +39,9 @@ async def update_book(request: RequestBook, db: Session = Depends(get_db)):
 
 
 @router.delete("/delete")
-async def delete_book(request: RequestBook,  db: Session = Depends(get_db)):
+async def delete_book(request: BookSchema,  db: Session = Depends(get_db)):
     try:
-        crud.remove_book(db, book_id=request.parameter.id)
+        crud.remove_book(db, book_id=request.id)
         return Response(status="Ok", code="200", message="Success delete data").dict(exclude_none=True)
     except Exception as e:
         return Response(

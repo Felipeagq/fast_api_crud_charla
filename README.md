@@ -119,39 +119,58 @@ from typing import List,Optional,Generic, TypeVar
 from pydantic import BaseModel, Field
 from pydantic.generics import GenericModel
 
+# creamos un tipo de variable "cualquiera"
 T = TypeVar("T")
 
+# Creamos el esquema del libro
 class BookSchema(BaseModel):
     id: Optional[int] = None
     title: Optional[str] = None
     description: Optional[str] = None
     
     class Config:
+        # le especificamos que será para uso de un ORM
         orm_mode = True
+        # Colocamos un ejemplo que se mostrará en el SWAGGER
+        schema_extra  = {
+            "example":
+                {
+                    "id": 0,
+                    "title": "titulo del libro",
+                    "description": "decripción del libro"
+                }
+        }
 
-
-class RequestBook(BaseModel):
-    parameter: BookSchema = Field(...)
-
-
+# Creamos un schema de respuesta
 class Response(BaseModel):
     code: str
     status: str
     message: str
     result: Optional[T]
 ````
+Estos esquemas se usarám tanto para la entrada de nuestra API es decir será el tipo de datos que recibiremos como parametros y tambien lo usaremos en nuestra salida de nuestra API es decir que será la clase que retornaremos en el return de nuestra función.
 
 ## Creamos las funciones del CRUD
-````python
-from sqlalchemy.orm import Session
-from app.models import Book
-from app.schemas import BookSchema
+Nuestro CRUD y nuestra rutas estarán en archivos diferentes para cumplir con los principios SOLID.
 
+````python
+from sqlalchemy.orm import Session # La sesión de la DB
+from app.models import Book # El modelo ORM de nuestra DB
+from app.schemas import BookSchema # el esquema del JSON
+
+# creamos la función para obtener todos los libros
 def get_book(db:Session, skip:int=0, limit:int=100):
     return db.query(Book).offset(skip).limit(limit).all()
+# query busca segun nuestro modelo
+# skip es el salto o pasos que hace
+# limit es la cantidad total de resultados que trae
+# la función all trae todos los resultados 
 
 def get_book_by_id(db:Session,book_id:int):
     return db.query(Book).filter(Book.id == book_id).first()
+# buscamos los resultados del modelo 
+# pero hacemos un filtro por el id
+# obtenemos el primer resultado
 
 def create_book(db:Session, book:BookSchema):
     _book = Book(
@@ -162,12 +181,17 @@ def create_book(db:Session, book:BookSchema):
     db.commit()
     db.refresh(_book)
     return _book
+# creamos le damos las propiedades 
+# asignando cada valor correspondiente del JSON al Modelo
+# guardamos en la DB
 
 def remove_book(db:Session, book_id:int):
     _book = get_book_by_id(db=db,book_id=book_id)
     db.delete(_book)
     db.commit()
     return _book
+# para eliminar filtramos por el Id
+# eliminamos
 
 def update_book(db:Session, book_id:int,
                 title:str, description:str):
@@ -177,6 +201,9 @@ def update_book(db:Session, book_id:int,
     db.commit()
     db.refresh(_book)
     return _book
+    # filtramos por id 
+    # reasignamos los valores de la entidad del modelo
+    # guardamos los cambios en la DB
 ````
 
 ## Creamos las rutas de nuestra API
@@ -184,29 +211,30 @@ def update_book(db:Session, book_id:int,
 # app/routes.py
 from fastapi import APIRouter, HTTPException, Path
 from fastapi import Depends
-from app.config import SessionLocal
+from app.db.config import SessionLocal,get_db
 from sqlalchemy.orm import Session
-from app.schemas import BookSchema, Response, RequestBook
+from app.schemas.schemas import BookSchema, Response, BookSchema
 
-from app import crud    
+from app.db import crud
 
+# Creamos un router, que es un conjunto de rutas agrupadas
 router = APIRouter()
 
+# Cabe mencionar que vamos a usar constantemente dos parametros 
+# "request" el cual es la entrada y será acorde con el esquema "mostrar en SWAGGER"
+# y "db" que es de tipo Sesion y de la cual depende de la conexión de nuestr db
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# haremos uso de las funciones que creamos en el archivo de crud.py
 
-
+# Creamos la ruta con la que crearemos 
 @router.post("/create")
-async def create_book_service(request: RequestBook, db: Session = Depends(get_db)):
-    crud.create_book(db, book=request.parameter)
+async def create_book_service(request: BookSchema, db: Session = Depends(get_db)):
+    crud.create_book(db, book=request)
+    print(request)
     return Response(status="Ok",
                     code="200",
-                    message="Book created successfully").dict(exclude_none=True)
+                    message="Book created successfully",result=request).dict(exclude_none=True)
+    # retornamos la respuesta con el schema de response
 
 
 @router.get("/")
@@ -216,16 +244,32 @@ async def get_books(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
 
 
 @router.patch("/update")
-async def update_book(request: RequestBook, db: Session = Depends(get_db)):
-    _book = crud.update_book(db, book_id=request.parameter.id,
-                            title=request.parameter.title, description=request.parameter.description)
-    return Response(status="Ok", code="200", message="Success update data", result=_book)
+async def update_book(request: BookSchema, db: Session = Depends(get_db)):
+    try:
+        _book = crud.update_book(db, book_id=request.id,
+                                title=request.title, description=request.description)
+        return Response(status="Ok", code="200", message="Success update data", result=_book)
+    except Exception as e:
+        return Response(
+            status="bad",
+            code="304",
+            message="the updated gone wrong"
+        )
+    # colocamos una excepción por si ocurre un error en la escritura en la db
 
 
 @router.delete("/delete")
-async def delete_book(request: RequestBook,  db: Session = Depends(get_db)):
-    crud.remove_book(db, book_id=request.parameter.id)
-    return Response(status="Ok", code="200", message="Success delete data").dict(exclude_none=True)
+async def delete_book(request: BookSchema,  db: Session = Depends(get_db)):
+    try:
+        crud.remove_book(db, book_id=request.id)
+        return Response(status="Ok", code="200", message="Success delete data").dict(exclude_none=True)
+    except Exception as e:
+        return Response(
+            status="bad",
+            code="",
+            message="the deleted gone wrong"
+        )
+    # colocamos una excepción por si ocurre un error en la escritura en la db
 ````
 incluimos las rutas en nuestro archivo raiz, despues del ````app=FastAPI()```` 
 ````python

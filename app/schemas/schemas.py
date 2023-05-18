@@ -11,10 +11,14 @@ class BookSchema(BaseModel):
     
     class Config:
         orm_mode = True
-
-
-class RequestBook(BaseModel):
-    parameter: BookSchema = Field(...)
+        schema_extra  = {
+            "example":
+                {
+                    "id": 0,
+                    "title": "titulo del libro",
+                    "description": "decripción del libro"
+                }
+        }
 
 
 class Response(BaseModel):
