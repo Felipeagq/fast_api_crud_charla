@@ -45,6 +45,6 @@ async def delete_book(request: RequestBook,  db: Session = Depends(get_db)):
     except Exception as e:
         return Response(
             status="bad",
-            code="404",
+            code="",
             message="the deleted gone wrong"
         )
