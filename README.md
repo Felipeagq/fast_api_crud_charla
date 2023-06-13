@@ -49,7 +49,7 @@ La ruta raíz generalmente se maneja como un **Health check** o ruta de bienesta
 ## Creación del archivo de configuración de BD
 Luego procederemos a la configuración de la Base de datos de nuestro proyecto, para eso haremos uso de la libreria de SQLAlchemy para manipular una base de datos local de SQLite.
 ````python
-# app/Config.py
+# app/db/config.py
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -83,7 +83,7 @@ def get_db():
 ## Creación de los modelos para la DB
 Luego de configurar la base de datos, procederemos a crear nuestro modelos para que el mapeador de SQLAlchemy, pueda crear las tablas a partir de esos modelos.
 ````python
-# app/models.py
+# app/models/models.py
 from sqlalchemy import Column, Integer, String
 from app.db.config import Base
 
@@ -114,7 +114,7 @@ model.Base.metadata.create_all(bind=engine)
 ## Creamos el archivo de Schemas
 Ya habiendo creado la base de datos, vamos a proceder a estructurar las entradas y salidas de nuestra API, para eso usaremos una libreria llamada pydantic y typing que nos permitiran crear una clase con elementos tipados que luego FastAPI mapeará en el JSON que se usará en dichas entradas y salidas
 ````python 
-# app/schemas.py
+# app/schemas/schemas.py
 from typing import List,Optional,Generic, TypeVar
 from pydantic import BaseModel, Field
 from pydantic.generics import GenericModel
@@ -154,6 +154,7 @@ Estos esquemas se usarám tanto para la entrada de nuestra API es decir será el
 Nuestro CRUD y nuestra rutas estarán en archivos diferentes para cumplir con los principios SOLID.
 
 ````python
+# app/db/crud.py
 from sqlalchemy.orm import Session # La sesión de la DB
 from app.models.models import Book # El modelo ORM de nuestra DB
 from app.schemas.schemas import BookSchema # el esquema del JSON
@@ -208,7 +209,7 @@ def update_book(db:Session, book_id:int,
 
 ## Creamos las rutas de nuestra API
 ````python
-# app/routes.py
+# app/routes/routes.py
 from fastapi import APIRouter, HTTPException, Path
 from fastapi import Depends
 from app.db.config import SessionLocal,get_db
