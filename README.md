@@ -262,8 +262,8 @@ async def update_book(request: BookSchema, db: Session = Depends(get_db)):
 @router.delete("/delete")
 async def delete_book(request: BookSchema,  db: Session = Depends(get_db)):
     try:
-        crud.remove_book(db, book_id=request.id)
-        return Response(status="Ok", code="200", message="Success delete data").dict(exclude_none=True)
+        _book = crud.remove_book(db, book_id=book_id)
+        return Response(status="Ok", code="200", message="Success delete data", result=_book)
     except Exception as e:
         return Response(
             status="bad",
