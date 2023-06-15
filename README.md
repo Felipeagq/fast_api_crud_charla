@@ -16,7 +16,7 @@ source venv/Script/activate
 
 ## Instalamos las librerias requeridas
 ````shell
-pip install fastapi uvicorn sqlalchemy psycopg2 fastapi-utils
+pip install fastapi uvicorn sqlalchemy psycopg2 fastapi-utils python-multipart python-dotenv
 ````
 
 ## Creamos la ruta raiz
@@ -108,7 +108,7 @@ model.Base.metadata.create_all(bind=engine)
 ````
 
 
-|Aqui podemos ver que la tabla y las columnas se crearon en la base de datos|
+|Aqui podemos ver que la tabla y las columnas se crearon en la base de datos, puedes instalar dbeaver|
 |-|
 
 ## Creamos el archivo de Schemas
@@ -116,8 +116,7 @@ Ya habiendo creado la base de datos, vamos a proceder a estructurar las entradas
 ````python 
 # app/schemas/schemas.py
 from typing import List,Optional,Generic, TypeVar
-from pydantic import BaseModel, Field
-from pydantic.generics import GenericModel
+from pydantic import BaseModel
 
 # creamos un tipo de variable "cualquiera"
 T = TypeVar("T")
@@ -210,7 +209,7 @@ def update_book(db:Session, book_id:int,
 ## Creamos las rutas de nuestra API
 ````python
 # app/routes/routes.py
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouters
 from fastapi import Depends
 from app.db.config import SessionLocal,get_db
 from sqlalchemy.orm import Session
